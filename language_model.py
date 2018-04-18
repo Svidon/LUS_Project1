@@ -7,6 +7,7 @@ automa = open('a.txt', 'w')
 # Sentences of corpus
 sents = []
 tmp = [tuple(['<s>', 'O'])]
+end = tuple(['</s>', 'O'])
 
 # Identify all sentences with tuples of word-tag
 for line in f:
@@ -15,6 +16,7 @@ for line in f:
 	if len(a) > 0:
 		tmp.append(tuple(a))
 	else:
+		tmp.append(end)
 		sents.append(tmp)
 		tmp = [tuple(['<s>', 'O'])]
 
@@ -33,19 +35,20 @@ word_tag_prob = {}
 # Dictionary with probability of word given the tag
 tag_tag_prob = {}
 
+
 # Fill counting dictionaries
 for p in sents:
 	for i, t in enumerate(p):
 
 		# Usual counting dicts
-		key = t[0] + ' ' + t[1]
+		key = (t[0], t[1])
 		word_tag_count[key] = word_tag_count.get(key, 0) + 1
 		word_freq[t[0]] = word_freq.get(t[0], 0) + 1
 		tag_freq[t[1]] = tag_freq.get(t[1], 0) + 1
 
 		# Count bigram tags
 		if i > 0:
-			bitags = p[i-1][1] + ' ' + t[1]
+			bitags = (p[i-1][1], t[1])
 			tag_tag_freq[bitags] = tag_tag_freq.get(bitags, 0) +1
 		
 
@@ -54,13 +57,13 @@ for val in sents:
 	for i, t in enumerate(val):
 
 		# Word given tag
-		key = t[0] + ' ' + t[1]
+		key = (t[0], t[1])
 		if key not in word_tag_prob:
 			word_tag_prob[key] = word_tag_count[key]/tag_freq[t[1]]
 
 		# Tag given previous tag
 		if i > 0:
-			bitags = val[i-1][1] + ' ' + t[1]
+			bitags = (val[i-1][1], t[1])
 			tag_tag_prob[bitags] = tag_tag_freq[bitags]/tag_freq[val[i-1][1]]
 
 
