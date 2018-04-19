@@ -1,13 +1,15 @@
+from math import log
+
 # Open needed files
 f = open('data/NLSPARQL.train.data', 'r')
-w_out = open('I.lex.txt', 'w')
-t_out = open('O.lex.txt', 'w')
+#w_out = open('I.lex.txt', 'w')
+#t_out = open('O.lex.txt', 'w')
 automa = open('a.txt', 'w')
 
 # Sentences of corpus
 sents = []
 tmp = [tuple(['<s>', 'O'])]
-end = tuple(['</s>', 'O'])
+end = tuple(['<\s>', 'O'])
 
 # Identify all sentences with tuples of word-tag
 for line in f:
@@ -52,6 +54,10 @@ for p in sents:
 			tag_tag_freq[bitags] = tag_tag_freq.get(bitags, 0) +1
 		
 
+# Number of tags
+n_tags = len(tag_freq)
+
+
 # Fill probabilities dictionaries
 for val in sents:
 	for i, t in enumerate(val):
@@ -59,15 +65,22 @@ for val in sents:
 		# Word given tag
 		key = (t[0], t[1])
 		if key not in word_tag_prob:
-			word_tag_prob[key] = word_tag_count[key]/tag_freq[t[1]]
+			word_tag_prob[key] = -log(word_tag_count[key]/tag_freq[t[1]])
 
 		# Tag given previous tag
 		if i > 0:
 			bitags = (val[i-1][1], t[1])
-			tag_tag_prob[bitags] = tag_tag_freq[bitags]/tag_freq[val[i-1][1]]
+			tag_tag_prob[bitags] = -log(tag_tag_freq[bitags]/tag_freq[val[i-1][1]])
 
 
+# Generate FST
+for key in word_tag_prob:
+	string = '0\t' + '0\t' + key[0] + '\t' + key[1] + '\t' + str(word_tag_prob[key]) + '\n'
+	automa.write(string)
+automa.write('0')
 
+
+'''
 # Create vocabulary files
 ids = 1
 
@@ -90,3 +103,4 @@ for w_key, t_key in zip(word_freq, tag_freq):
 
 unk = '<unk>' + ' ' + str(ids) + '\n'
 w_out.write(unk)
+'''
