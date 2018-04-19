@@ -6,11 +6,16 @@ f = open('data/NLSPARQL.train.data', 'r')
 #t_out = open('O.lex.txt', 'w')
 automa = open('a.txt', 'w')
 unk = open('unk.txt', 'w')
+tag_sent = open('tag_sent.txt', 'w')
+
+
+########################
+# Reading of train file
+########################
 
 # Sentences of corpus
 sents = []
-tmp = [tuple(['<s>', 'O'])]
-end = tuple(['<\s>', 'O'])
+tmp = []
 
 # Identify all sentences with tuples of word-tag
 for line in f:
@@ -19,10 +24,15 @@ for line in f:
 	if len(a) > 0:
 		tmp.append(tuple(a))
 	else:
-		tmp.append(end)
 		sents.append(tmp)
-		tmp = [tuple(['<s>', 'O'])]
+		tmp = []
 
+
+
+#####################################
+# Filling of dictionaries
+# both frequencies and probabilities
+#####################################
 
 # Dictionary of words frequencies and tag frequencies
 word_freq = {}
@@ -74,21 +84,11 @@ for val in sents:
 			tag_tag_prob[bitags] = -log(tag_tag_freq[bitags]/tag_freq[val[i-1][1]])
 
 
-# Generate FSTs
-for key in word_tag_prob:
-	string = '0\t' + '0\t' + key[0] + '\t' + key[1] + '\t' + str(word_tag_prob[key]) + '\n'
-	automa.write(string)
-automa.write('0')
-
-# FST for unknown words
-for key in tag_freq:
-	string = '0\t' + '0\t' + '<unk>' + '\t' + key + '\t' + str(1/n_tags) + '\n'
-	unk.write(string)
-unk.write('0')
-
-
 
 '''
+##########################
+# Eventual lexicon files
+##########################
 # Create vocabulary files
 ids = 1
 
@@ -112,3 +112,46 @@ for w_key, t_key in zip(word_freq, tag_freq):
 unk = '<unk>' + ' ' + str(ids) + '\n'
 w_out.write(unk)
 '''
+
+
+###################################
+# Generation of FSTs for the tool
+###################################
+
+# Generate FSTs
+for key in word_tag_prob:
+	string = '0\t' + '0\t' + key[0] + '\t' + key[1] + '\t' + str(word_tag_prob[key]) + '\n'
+	automa.write(string)
+automa.write('0')
+
+# FST for unknown words
+for key in tag_freq:
+	string = '0\t' + '0\t' + '<unk>' + '\t' + key + '\t' + str(1/n_tags) + '\n'
+	unk.write(string)
+unk.write('0')
+
+
+
+###############################################
+# Generation of file for n-gram language model
+###############################################
+
+# Generate list of all sentences with just the tags
+tag_sentencies = []
+
+for p in sents:
+	tmp = []
+
+	for el in p:
+		tmp.append(el[1])
+
+	tag_sentencies.append(tmp)
+
+# Write out tag sentencies
+for el in tag_sentencies:
+	string = ''
+	for tag in el:
+		string += tag + ' '
+
+	string += '\n'
+	tag_sent.write(string)
