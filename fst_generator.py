@@ -5,6 +5,7 @@ f = open('data/NLSPARQL.train.data', 'r')
 #w_out = open('I.lex.txt', 'w')
 #t_out = open('O.lex.txt', 'w')
 automa = open('a.txt', 'w')
+unk = open('unk.txt', 'w')
 
 # Sentences of corpus
 sents = []
@@ -73,11 +74,18 @@ for val in sents:
 			tag_tag_prob[bitags] = -log(tag_tag_freq[bitags]/tag_freq[val[i-1][1]])
 
 
-# Generate FST
+# Generate FSTs
 for key in word_tag_prob:
 	string = '0\t' + '0\t' + key[0] + '\t' + key[1] + '\t' + str(word_tag_prob[key]) + '\n'
 	automa.write(string)
 automa.write('0')
+
+# FST for unknown words
+for key in tag_freq:
+	string = '0\t' + '0\t' + '<unk>' + '\t' + key + '\t' + str(1/n_tags) + '\n'
+	unk.write(string)
+unk.write('0')
+
 
 
 '''
