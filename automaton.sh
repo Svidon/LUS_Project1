@@ -26,8 +26,16 @@ farcompilestrings --symbols=lex.txt --unknown_symbol='<unk>' tag_sent.txt > tags
 ngramcount --order=3 --require_symbols=false tags.far > tags.cnt
 ngrammake --method=witten_bell tags.cnt > tags.lm
 echo "Built language model"
+echo "Training done"
 
-# Build fsa for sentence (assume 'prova.txt' is the file)
+# Generate FST for test data
+fstcompile --isymbols=lex.txt --osymbols=lex.txt a_test.txt > a_test.fst
+echo "Built FST for test"
+
+
+
+: '
+# Build fsa for sentence (assume prova.txt is the file)
 fstcompile --acceptor --isymbols=lex.txt --osymbols=lex.txt prova.txt > sent.fsa
 
 # Compose all elements together
@@ -38,3 +46,4 @@ echo "Computed TAGs"
 
 # Print resulting automaton
 fstprint --isymbols=lex.txt --osymbols=lex.txt result.fst
+'

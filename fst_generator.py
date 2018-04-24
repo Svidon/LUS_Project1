@@ -1,10 +1,12 @@
 from math import log
 
 # Open needed files
-f = open('data/NLSPARQL.train.data', 'r')
+train = open('data/NLSPARQL.train.data', 'r')
+test = open('data/NLSPARQL.test.data', 'r')
 #w_out = open('I.lex.txt', 'w')
 #t_out = open('O.lex.txt', 'w')
 automa = open('a.txt', 'w')
+automa_test = open('a_test.txt', 'w')
 unk = open('unk.txt', 'w')
 tag_sent = open('tag_sent.txt', 'w')
 
@@ -18,7 +20,7 @@ sents = []
 tmp = []
 
 # Identify all sentences with tuples of word-tag
-for line in f:
+for line in train:
 	a = list(line.split())
 
 	if len(a) > 0:
@@ -26,6 +28,26 @@ for line in f:
 	else:
 		sents.append(tmp)
 		tmp = []
+
+
+
+#######################
+# Reading of test file
+#######################
+
+# Sentences of corpus
+sents_test = []
+tmp_test = []
+
+# Identify all sentences with tuples of word-tag
+for line in test:
+	a = list(line.split())
+
+	if len(a) > 0:
+		tmp_test.append(tuple(a))
+	else:
+		sents_test.append(tmp_test)
+		tmp_test = []
 
 
 
@@ -114,9 +136,9 @@ w_out.write(unk)
 '''
 
 
-###################################
-# Generation of FSTs for the tool
-###################################
+########################################
+# Generation of train FSTs for the tool
+########################################
 
 # Generate FSTs
 for key in word_tag_prob:
@@ -129,6 +151,23 @@ for key in tag_freq:
 	string = '0\t' + '0\t' + '<unk>' + '\t' + key + '\t' + str(1/n_tags) + '\n'
 	unk.write(string)
 unk.write('0')
+
+
+
+######################################
+# Generation of test FST for the tool
+######################################
+
+# Generate FSTs, handling unknown words
+for sent in sents_test:
+	for word in sent:
+		if word in word_freq:
+			string = '0\t' + '0\t' + word + '\t' + word + '\n'
+			automa_test.write(string)
+		else:
+			string = '0\t' + '0\t' + '<unk>' + '\t' + '<unk>' + '\n'
+			automa_test.write(string)
+automa_test.write('0')
 
 
 
