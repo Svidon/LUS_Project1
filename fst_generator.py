@@ -159,15 +159,22 @@ unk.write('0')
 ######################################
 
 # Generate FSTs, handling unknown words
+count = 0
+
 for sent in sents_test:
+	st = count
+	
 	for word in sent:
 		if word in word_freq:
-			string = '0\t' + '0\t' + word + '\t' + word + '\n'
+			string = str(count) + '\t' + str(count+1) + '\t' + word + '\t' + word + '\n'
 			automa_test.write(string)
+			count += 1
 		else:
-			string = '0\t' + '0\t' + '<unk>' + '\t' + '<unk>' + '\n'
+			string = str(count) + '\t' + str(count+1) + '\t' + '<unk>' + '\t' + '<unk>' + '\n'
 			automa_test.write(string)
-automa_test.write('0')
+			count += 1
+
+	automa_test.write(str(st))
 
 
 
