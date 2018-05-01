@@ -11,11 +11,11 @@ echo "<s>	1771" >> lex.txt
 echo "<\s>	1772" >> lex.txt
 echo "Generated lexicon"
 
-# Generate fsts with python script
+# Generate FSTs with python script
 python3 fst_generator.py
 echo "Generated FSTs"
 
-# Compile fsts into a complessive one
+# Compile FSTs into a complessive one
 fstcompile --isymbols=lex.txt --osymbols=lex.txt a.txt > a.fst
 fstcompile --isymbols=lex.txt --osymbols=lex.txt unk.txt > unk.fst
 fstunion a.fst unk.fst > automaton.fst
@@ -31,6 +31,16 @@ echo "Training done"
 # Generate FST for test data
 fstcompile --isymbols=lex.txt --osymbols=lex.txt a_test.txt > a_test.fst
 echo "Built FST for test"
+
+
+# Compose all elements together
+fstcompose a_test.fst automaton.fst |\
+fstcompose - tags.lm |\
+fstrmepsilon > result.fst
+echo "Computed TAGs"
+
+# Print resulting automaton
+fstprint --isymbols=lex.txt --osymbols=lex.txt result.fst
 
 
 
