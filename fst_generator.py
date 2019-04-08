@@ -1,8 +1,8 @@
 from math import log
 
 # Open needed files
-train = open('data/NLSPARQL.train.data', 'r')
-test = open('data/NLSPARQL.test.data', 'r')
+train = open('dataset/NL2SparQL4NLU.train.conll.txt', 'r')
+test = open('dataset/NL2SparQL4NLU.test.conll.txt', 'r')
 #w_out = open('I.lex.txt', 'w')
 #t_out = open('O.lex.txt', 'w')
 automa = open('a.txt', 'w')
@@ -75,7 +75,7 @@ tag_tag_prob = {}
 for p in sents:
 	for i, t in enumerate(p):
 
-		# Usual counting dicts
+		# Count word frequencies, tag frequencies and word-tag frequencies
 		key = (t[0], t[1])
 		word_tag_count[key] = word_tag_count.get(key, 0) + 1
 		word_freq[t[0]] = word_freq.get(t[0], 0) + 1
@@ -85,7 +85,8 @@ for p in sents:
 		if i > 0:
 			bitags = (p[i-1][1], t[1])
 			tag_tag_freq[bitags] = tag_tag_freq.get(bitags, 0) +1
-		
+
+
 
 # Number of tags
 n_tags = len(tag_freq)
@@ -98,18 +99,18 @@ for val in sents:
 		# Word given tag
 		key = (t[0], t[1])
 		if key not in word_tag_prob:
-			word_tag_prob[key] = -log(word_tag_count[key]/tag_freq[t[1]])
+			word_tag_prob[key] = -log(float(word_tag_count[key])/float(tag_freq.get(t[1])))
 
 		# Tag given previous tag
 		if i > 0:
 			bitags = (val[i-1][1], t[1])
-			tag_tag_prob[bitags] = -log(tag_tag_freq[bitags]/tag_freq[val[i-1][1]])
+			tag_tag_prob[bitags] = -log(float(tag_tag_freq[bitags])/float(tag_freq.get(val[i-1][1])))
 
 
 
 '''
 ##########################
-# Eventual lexicon files
+# Other lexicon files
 ##########################
 # Create vocabulary files
 ids = 1

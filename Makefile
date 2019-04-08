@@ -6,6 +6,7 @@ automaton:
 clean:
 	@rm *.fst
 	@rm *.far
+	@rm *.fsa
 	@rm *.lm
 	@rm *.cnt
 	@rm lex.txt
@@ -13,4 +14,5 @@ clean:
 	@rm tag_sent.txt
 	@rm a.txt
 	@rm a_test.txt
+	@rm *.png
 	@echo Cleaned directory

@@ -4,7 +4,7 @@
 
 
 # Create lexicon
-ngramsymbols < data/NLSPARQL.train.data > lex.txt
+ngramsymbols < dataset/NL2SparQL4NLU.train.conll.txt > lex.txt
 
 # Add starting and ending symbols to lexicon
 echo "<s>	1771" >> lex.txt
@@ -54,3 +54,4 @@ echo "Computed TAGs"
 
 # Print resulting automaton
 fstprint --isymbols=lex.txt --osymbols=lex.txt result.fst
+fstdraw --isymbols=lex.txt --osymbols=lex.txt -portrait result.fst | dot -Tpng -Gdpi=300 >result.png
