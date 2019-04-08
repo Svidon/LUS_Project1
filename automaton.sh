@@ -43,8 +43,6 @@ echo "Computed TAGs"
 fstprint --isymbols=lex.txt --osymbols=lex.txt result.fst
 
 
-
-: '
 # Build fsa for sentence (assume prova.txt is the file)
 fstcompile --acceptor --isymbols=lex.txt --osymbols=lex.txt prova.txt > sent.fsa
 
@@ -56,4 +54,3 @@ echo "Computed TAGs"
 
 # Print resulting automaton
 fstprint --isymbols=lex.txt --osymbols=lex.txt result.fst
-'
