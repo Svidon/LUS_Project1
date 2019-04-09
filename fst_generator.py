@@ -3,8 +3,9 @@ from math import log
 # Open needed files
 train = open('dataset/NL2SparQL4NLU.train.conll.txt', 'r')
 test = open('dataset/NL2SparQL4NLU.test.conll.txt', 'r')
-#w_out = open('I.lex.txt', 'w')
-#t_out = open('O.lex.txt', 'w')
+w_out = open('I.lex.txt', 'w')
+t_out = open('O.lex.txt', 'w')
+tags_lex = open('tags.lex.txt', 'w')
 automa = open('a.txt', 'w')
 automa_test = open('a_test.txt', 'w')
 unk = open('unk.txt', 'w')
@@ -92,6 +93,7 @@ for p in sents:
 n_tags = len(tag_freq)
 
 
+
 # Fill probabilities dictionaries
 for val in sents:
 	for i, t in enumerate(val):
@@ -108,19 +110,16 @@ for val in sents:
 
 
 
-'''
+
 ##########################
 # Other lexicon files
 ##########################
-# Create vocabulary files
 ids = 1
 
 # Add epsilon
-ttmp = '<eps>' + ' ' + '0' + '\n'
-t_out.write(ttmp)
-
-wtmp = '<eps>' + ' ' + '0' + '\n'
-w_out.write(wtmp)
+epsilon = '<eps>' + ' ' + '0' + '\n'
+t_out.write(epsilon)
+w_out.write(epsilon)
 
 
 for w_key, t_key in zip(word_freq, tag_freq):
@@ -132,9 +131,22 @@ for w_key, t_key in zip(word_freq, tag_freq):
 
 	ids += 1
 
-unk = '<unk>' + ' ' + str(ids) + '\n'
-w_out.write(unk)
-'''
+unk_add = '<unk>' + ' ' + str(ids) + '\n'
+w_out.write(unk_add)
+
+
+# Tags' lexicon
+ids = 1
+
+# Add epsilon
+tags_lex.write(epsilon)
+
+for key in tag_freq:
+	tagtmp = key + ' ' + str(ids) + '\n'
+	tags_lex.write(tagtmp)
+	ids += 1
+
+tags_lex.write(unk_add)
 
 
 ########################################

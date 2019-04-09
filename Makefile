@@ -9,7 +9,7 @@ clean:
 	@rm *.fsa
 	@rm *.lm
 	@rm *.cnt
-	@rm lex.txt
+	@rm *lex.txt
 	@rm unk.txt
 	@rm tag_sent.txt
 	@rm a.txt
