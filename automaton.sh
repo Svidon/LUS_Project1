@@ -1,7 +1,5 @@
 #!/bin/bash
 # All instructions to get the results are listed in order here
-# For the vocabularies one could also uncomment the code in the python code
-
 
 # Create lexicon
 ngramsymbols < dataset/NL2SparQL4NLU.train.conll.txt > lex.txt
@@ -32,6 +30,10 @@ echo "Training done"
 fstcompile --isymbols=lex.txt --osymbols=tags.lex.txt a_test.txt > a_test.fst
 echo "Built FST for test"
 
+# Generate FSA for test data
+#fstcompile --acceptor --isymbols=lex.txt --osymbols=tags.lex.txt a_test_fsa.txt > a_test.fsa
+#echo "Built FSA for test"
+
 
 # Compose all elements together
 fstcompose a_test.fst automaton.fst |\
@@ -41,17 +43,4 @@ echo "Computed TAGs"
 
 # Print resulting automaton
 fstprint --isymbols=lex.txt --osymbols=tags.lex.txt result.fst
-
-
-# Build fsa for sentence (assume prova.txt is the file)
-fstcompile --acceptor --isymbols=lex.txt --osymbols=tags.lex.txt prova.txt > sent.fsa
-
-# Compose all elements together
-fstcompose sent.fsa automaton.fst |\
-fstcompose - tags.lm |\
-fstrmepsilon | fstshortestpath > result.fst
-echo "Computed TAGs"
-
-# Print resulting automaton
-fstprint --isymbols=lex.txt --osymbols=tags.lex.txt result.fst
-fstdraw --isymbols=lex.txt --osymbols=tags.lex.txt -portrait result.fst | dot -Tpng -Gdpi=300 >result.png
+fstdraw --isymbols=lex.txt --osymbols=tags.lex.txt -portrait result.fst | dot -Tpng -Gdpi=300 >diome.png
