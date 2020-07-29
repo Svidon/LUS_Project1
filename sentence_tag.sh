@@ -6,9 +6,11 @@ fstcompile --acceptor --isymbols=lex.txt --osymbols=tags.lex.txt prova.txt > sen
 # Compose all elements together
 fstcompose sent.fsa automaton.fst |\
 fstcompose - tags.lm |\
-fstrmepsilon | fstshortestpath > result.fst
+fstshortestpath |\
+fstrmepsilon |\
+fsttopsort > result.fst
 echo "Computed TAGs"
 
 # Print resulting automaton
 fstprint --isymbols=lex.txt --osymbols=tags.lex.txt result.fst
-fstdraw --isymbols=lex.txt --osymbols=tags.lex.txt -portrait result.fst | dot -Tpng -Gdpi=300 >result.png
+fstdraw --isymbols=lex.txt --osymbols=tags.lex.txt -portrait result.fst | dot -Tpng -Gdpi=300 > tagged.png

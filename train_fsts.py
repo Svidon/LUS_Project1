@@ -2,12 +2,8 @@ from math import log
 
 # Open needed files
 train = open('dataset/NL2SparQL4NLU.train.conll.txt', 'r')
-test = open('dataset/NL2SparQL4NLU.test.conll.txt', 'r')
-w_out = open('I.lex.txt', 'w')
-t_out = open('O.lex.txt', 'w')
 tags_lex = open('tags.lex.txt', 'w')
 automa = open('a.txt', 'w')
-automa_test = open('a_test.txt', 'w')
 unk = open('unk.txt', 'w')
 tag_sent = open('tag_sent.txt', 'w')
 
@@ -32,26 +28,6 @@ for line in train:
 
 
 
-#######################
-# Reading of test file
-#######################
-
-# Sentences of corpus
-sents_test = []
-tmp_test = []
-
-# Identify all sentences with tuples of word-tag
-for line in test:
-	a = list(line.split())
-
-	if len(a) > 0:
-		tmp_test.append(tuple(a))
-	else:
-		sents_test.append(tmp_test)
-		tmp_test = []
-
-
-
 #####################################
 # Filling of dictionaries
 # both frequencies and probabilities
@@ -68,7 +44,7 @@ word_tag_count = {}
 # Dictionary with probability of word given the tag
 word_tag_prob = {}
 
-# Dictionary with probability of word given the tag
+# Dictionary with probability of tag given previous tag
 tag_tag_prob = {}
 
 
@@ -111,34 +87,13 @@ for val in sents:
 
 
 
-##########################
-# Other lexicon files
-##########################
+#########################################
+# Generate TAGs lexicon
+#########################################
 ids = 1
 
 # Add epsilon
 epsilon = '<eps>' + ' ' + '0' + '\n'
-t_out.write(epsilon)
-w_out.write(epsilon)
-
-
-for w_key, t_key in zip(word_freq, tag_freq):
-	ttmp = t_key + ' ' + str(ids) + '\n'
-	t_out.write(ttmp)
-
-	wtmp = w_key + ' ' + str(ids) + '\n'
-	w_out.write(wtmp)
-
-	ids += 1
-
-unk_add = '<unk>' + ' ' + str(ids) + '\n'
-w_out.write(unk_add)
-
-
-# Tags' lexicon
-ids = 1
-
-# Add epsilon
 tags_lex.write(epsilon)
 
 for key in tag_freq:
@@ -146,6 +101,8 @@ for key in tag_freq:
 	tags_lex.write(tagtmp)
 	ids += 1
 
+# Add unk
+unk_add = '<unk>' + ' ' + str(ids) + '\n'
 tags_lex.write(unk_add)
 
 
@@ -164,31 +121,6 @@ for key in tag_freq:
 	string = '0\t' + '0\t' + '<unk>' + '\t' + key + '\t' + str(1/n_tags) + '\n'
 	unk.write(string)
 unk.write('0')
-
-
-
-######################################
-# Generation of test FST for the tool
-######################################
-
-# Generate FSTs, handling unknown words
-count = 0
-
-for sent in sents_test:
-	st = count
-	
-	for word in sent:
-		if word in word_freq:
-			string = str(count) + '\t' + str(count+1) + '\t' + word + '\t' + word + '\n'
-			automa_test.write(string)
-			count += 1
-		else:
-			string = str(count) + '\t' + str(count+1) + '\t' + '<unk>' + '\t' + '<unk>' + '\n'
-			automa_test.write(string)
-			count += 1
-
-	automa_test.write(str(st))
-
 
 
 ###############################################
