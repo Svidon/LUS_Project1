@@ -4,7 +4,6 @@ from math import log
 train = open('dataset/NL2SparQL4NLU.train.conll.txt', 'r')
 tags_lex = open('tags.lex.txt', 'w')
 automa = open('a.txt', 'w')
-unk = open('unk.txt', 'w')
 tag_sent = open('tag_sent.txt', 'w')
 
 
@@ -107,20 +106,19 @@ tags_lex.write(unk_add)
 
 
 ########################################
-# Generation of train FSTs for the tool
+# Generation of train FST for the tool
 ########################################
 
 # Generate FSTs
 for key in word_tag_prob:
 	string = '0\t' + '0\t' + key[0] + '\t' + key[1] + '\t' + str(word_tag_prob[key]) + '\n'
 	automa.write(string)
-automa.write('0')
 
-# FST for unknown words
+# Add unk information and final state
 for key in tag_freq:
 	string = '0\t' + '0\t' + '<unk>' + '\t' + key + '\t' + str(1/n_tags) + '\n'
-	unk.write(string)
-unk.write('0')
+	automa.write(string)
+automa.write('0')
 
 
 ###############################################

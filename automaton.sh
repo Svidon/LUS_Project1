@@ -9,15 +9,13 @@ echo "Generated lexicon"
 python3 train_fsts.py
 echo "Generated FSTs"
 
-# Compile FSTs into a complessive one
-fstcompile --isymbols=lex.txt --osymbols=tags.lex.txt a.txt > a.fst
-fstcompile --isymbols=lex.txt --osymbols=tags.lex.txt unk.txt > unk.fst
-fstunion a.fst unk.fst > automaton.fst
+# Compile FSTs into a complessive one (unk probabilities are already in a.txt)
+fstcompile --isymbols=lex.txt --osymbols=tags.lex.txt a.txt > automaton.fst
 echo "Compiled FSTs"
 
 # Generate language model               
 farcompilestrings --symbols=tags.lex.txt --unknown_symbol='<unk>' --keep_symbols=1 tag_sent.txt > tags.far
-ngramcount --order=3 tags.far > tags.cnt
-ngrammake --method=witten_bell tags.cnt > tags.lm
+ngramcount --order=$1 tags.far > tags.cnt
+ngrammake --method=$2 tags.cnt > tags.lm
 echo "Built language model"
 echo "Training done"
