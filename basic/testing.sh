@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Generate FAR with all test sentences
-farcompilestrings --symbols=lex.txt --unknown_symbol="<unk>" dataset/NL2SparQL4NLU.test.utterances.txt > test.far
+farcompilestrings --symbols=lex.txt --unknown_symbol="<unk>" ../dataset/NL2SparQL4NLU.test.utterances.txt > test.far
 
 # Extract all the sentences in a separate folder
 mkdir -p test_fsa
@@ -22,8 +22,8 @@ echo "Computed TAGs"
 cat test_fsa/*.res.txt > result.txt
 
 # Here evaluate model
-paste dataset/NL2SparQL4NLU.test.conll.txt result.txt | cut -f 1,2,4 > merge.txt
-perl conlleval.pl -d "\t" < merge.txt > evaluation.txt
+paste ../dataset/NL2SparQL4NLU.test.conll.txt result.txt | cut -f 1,2,4 > merge.txt
+perl extras/conlleval.pl -d "\t" < merge.txt > evaluation.txt
 
 # At the end
 echo "Testing done"

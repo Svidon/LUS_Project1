@@ -2,11 +2,14 @@
 # All instructions to get the results are listed in order here
 
 # Create lexicon (OOV specified, it was all capital by default, dunno why)
-ngramsymbols --OOV_symbol="<unk>" < dataset/NL2SparQL4NLU.train.utterances.txt  > lex.txt
+# Comment if we want to use the cutoff
+ngramsymbols --OOV_symbol="<unk>" < ../dataset/NL2SparQL4NLU.train.utterances.txt  > lex.txt
 echo "Generated lexicon"
 
 # Generate FSTs with python script
 python3 train_fsts.py
+# If you wanna use cutoff use the following line and comment above:
+#python3 train_fsts_cutoff.py
 echo "Generated FSTs"
 
 # Compile FSTs into a complessive one (unk probabilities are already in a.txt)

@@ -1,10 +1,14 @@
 from math import log
 
 # Open needed files
-train = open('dataset/NL2SparQL4NLU.train.conll.txt', 'r')
+train = open('../dataset/NL2SparQL4NLU.train.conll.txt', 'r')
 tags_lex = open('tags.lex.txt', 'w')
 automa = open('a.txt', 'w')
 tag_sent = open('tag_sent.txt', 'w')
+lexicon = open('lex.txt', 'w')
+
+# This is the variable to set the minimum frequency to consider words
+CUTOFF = 3
 
 
 ########################
@@ -35,7 +39,6 @@ for line in train:
 # Dictionary of words frequencies and tag frequencies
 word_freq = {}
 tag_freq = {}
-tag_tag_freq = {}
 
 # Dictionary of word-tag counts
 word_tag_count = {}
@@ -43,26 +46,56 @@ word_tag_count = {}
 # Dictionary with probability of word given the tag
 word_tag_prob = {}
 
-# Dictionary with probability of tag given previous tag
-tag_tag_prob = {}
+
+###############################
+# Generate lexicon with cutoff
+# (and counts in the meanwhile)
+###############################
+for p in sents:
+	for i, t in enumerate(p):
+		word_freq[t[0]] = word_freq.get(t[0], 0) + 1
+	
+# Apply cutoff
+lex = []
+lex.extend(sorted([word for word, freq in word_freq.items() if freq >= CUTOFF]))
+
+# Generate lexicon file
+ids = 1
+
+# Add epsilon
+epsilon = '<eps>' + ' ' + '0' + '\n'
+lexicon.write(epsilon)
+
+for w in lex:
+	lextmp = w + ' ' + str(ids) + '\n'
+	lexicon.write(lextmp)
+	ids += 1
+
+# Add unk
+unk_add = '<unk>' + ' ' + str(ids) + '\n'
+lexicon.write(unk_add)
+
+
+##########################
+# Complete probabilities
+##########################
 
 
 # Fill counting dictionaries
 for p in sents:
 	for i, t in enumerate(p):
-
-		# Count word frequencies, tag frequencies and word-tag frequencies
-		key = (t[0], t[1])
-		word_tag_count[key] = word_tag_count.get(key, 0) + 1
-		word_freq[t[0]] = word_freq.get(t[0], 0) + 1
+	
+		# Count tag frequencies and word-tag frequencies
+		# We count the tags even with cutoff words
 		tag_freq[t[1]] = tag_freq.get(t[1], 0) + 1
-
-		# Count bigram tags
-		if i > 0:
-			bitags = (p[i-1][1], t[1])
-			tag_tag_freq[bitags] = tag_tag_freq.get(bitags, 0) +1
-
-
+		
+		
+		# Check that word is in the lexicon with cutoff
+		if t[0] in lex:
+			key = (t[0], t[1])
+			word_tag_count[key] = word_tag_count.get(key, 0) + 1
+			
+		
 
 # Number of tags
 n_tags = len(tag_freq)
@@ -75,13 +108,9 @@ for val in sents:
 
 		# Word given tag
 		key = (t[0], t[1])
-		if key not in word_tag_prob:
-			word_tag_prob[key] = -log(float(word_tag_count[key])/float(tag_freq.get(t[1])))
-
-		# Tag given previous tag
-		if i > 0:
-			bitags = (val[i-1][1], t[1])
-			tag_tag_prob[bitags] = -log(float(tag_tag_freq[bitags])/float(tag_freq.get(val[i-1][1])))
+		if t[0] in lex:
+			if key not in word_tag_prob:
+				word_tag_prob[key] = -log(float(word_tag_count[key])/float(tag_freq.get(t[1])))
 
 
 
@@ -116,7 +145,7 @@ for key in word_tag_prob:
 
 # Add unk information and final state
 for key in tag_freq:
-	string = '0\t' + '0\t' + '<unk>' + '\t' + key + '\t' + str(1/n_tags) + '\n'
+	string = '0\t' + '0\t' + '<unk>' + '\t' + key + '\t' + str(-log(1/float(n_tags))) + '\n'
 	automa.write(string)
 automa.write('0')
 
@@ -136,7 +165,7 @@ for p in sents:
 
 	tag_sentencies.append(tmp)
 
-# Write out tag sentencies
+# Write out tag sentencies. All the correct tags are used, even for cutoff words
 for el in tag_sentencies:
 	string = ''
 	for tag in el:
