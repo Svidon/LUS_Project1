@@ -8,7 +8,7 @@ tag_sent = open('tag_sent.txt', 'w')
 lexicon = open('lex.txt', 'w')
 
 # This is the variable to set the minimum frequency to consider words
-CUTOFF = 3
+CUTOFF = 4
 
 
 ########################
