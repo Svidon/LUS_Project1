@@ -114,3 +114,4 @@ test_csv.write(head)
 for el in sorted_test_concepts:
 	string = el[0] + ", " + str(el[1]) + "\n"
 	test_csv.write(string)
+test_csv.close()
