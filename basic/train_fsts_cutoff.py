@@ -173,3 +173,4 @@ for el in tag_sentencies:
 
 	string += '\n'
 	tag_sent.write(string)
+tag_sent.close()
