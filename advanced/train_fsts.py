@@ -2,9 +2,15 @@ from math import log
 
 # Open needed files
 train = open('../dataset/NL2SparQL4NLU.train.conll.txt', 'r')
-tags_lex = open('tags.lex.txt', 'w')
+tags_lex = open('wordtags.lex.txt', 'w')
 automa = open('a.txt', 'w')
-tag_sent = open('tag_sent.txt', 'w')
+tag_sent = open('wordtag_sent.txt', 'w')
+word_lex = open('word.txt', 'w')
+
+# Control variables (to allow cutoff and lemmas usage)
+LEMMAS = False
+CUTOFF = False
+CUTOFF_VAL = 3
 
 
 ########################
@@ -20,11 +26,11 @@ for line in train:
 	a = list(line.split())
 
 	if len(a) > 0:
+		a[1] = '+'.join(a)
 		tmp.append(tuple(a))
 	else:
 		sents.append(tmp)
 		tmp = []
-
 
 
 #####################################
@@ -34,13 +40,13 @@ for line in train:
 
 # Dictionary of words frequencies and tag frequencies
 word_freq = {}
-tag_freq = {}
+wordtag_freq = {}
 
 # Dictionary of word-tag counts
-word_tag_count = {}
+word_wordtag_count = {}
 
 # Dictionary with probability of word given the tag
-word_tag_prob = {}
+word_wordtag_prob = {}
 
 
 # Fill counting dictionaries
@@ -49,15 +55,12 @@ for p in sents:
 
 		# Count word frequencies, tag frequencies and word-tag frequencies
 		key = (t[0], t[1])
-		word_tag_count[key] = word_tag_count.get(key, 0) + 1
+		word_wordtag_count[key] = word_wordtag_count.get(key, 0) + 1
 		word_freq[t[0]] = word_freq.get(t[0], 0) + 1
-		tag_freq[t[1]] = tag_freq.get(t[1], 0) + 1
-
+		wordtag_freq[t[1]] = wordtag_freq.get(t[1], 0) + 1
 
 # Number of tags
-n_tags = len(tag_freq)
-
-
+n_tags = len(wordtag_freq)
 
 # Fill probabilities dictionaries
 for val in sents:
@@ -65,10 +68,18 @@ for val in sents:
 
 		# Word given tag
 		key = (t[0], t[1])
-		if key not in word_tag_prob:
-			word_tag_prob[key] = -log(float(word_tag_count[key])/float(tag_freq.get(t[1])))
+		if key not in word_wordtag_prob:
+			word_wordtag_prob[key] = -log(float(word_wordtag_count[key])/float(wordtag_freq.get(t[1])))
 
 
+#########################
+# Save new word lexicon
+#########################
+
+for w in word_freq:
+	tmp = str(w) + '\n'
+	word_lex.write(tmp)
+word_lex.close()
 
 
 #########################################
@@ -80,7 +91,7 @@ ids = 1
 epsilon = '<eps>' + ' ' + '0' + '\n'
 tags_lex.write(epsilon)
 
-for key in tag_freq:
+for key in wordtag_freq:
 	tagtmp = key + ' ' + str(ids) + '\n'
 	tags_lex.write(tagtmp)
 	ids += 1
@@ -95,12 +106,12 @@ tags_lex.write(unk_add)
 ########################################
 
 # Generate FSTs
-for key in word_tag_prob:
-	string = '0\t' + '0\t' + key[0] + '\t' + key[1] + '\t' + str(word_tag_prob[key]) + '\n'
+for key in word_wordtag_prob:
+	string = '0\t' + '0\t' + key[0] + '\t' + key[1] + '\t' + str(word_wordtag_prob[key]) + '\n'
 	automa.write(string)
 
 # Add unk information and final state
-for key in tag_freq:
+for key in wordtag_freq:
 	string = '0\t' + '0\t' + '<unk>' + '\t' + key + '\t' + str(-log(1/float(n_tags))) + '\n'
 	automa.write(string)
 automa.write('0')

@@ -23,11 +23,12 @@ clean:	 ## Clean all temporary and generated files in the directory
 	@rm -f *.lm
 	@rm -f *.cnt
 	@rm -f *lex.txt
-	@rm -f tag_sent.txt
+	@rm -f wordtag_sent.txt
 	@rm -f a.txt
 	@rm -f *.png
 	@rm -f merge.txt
 	@rm -f result.txt
 	@rm -f evaluation.txt
+	@rm -f word.txt
 	@rm -f -r test_fsa
 	@echo Cleaned directory

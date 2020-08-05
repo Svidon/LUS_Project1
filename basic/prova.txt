@@ -1,8 +1,0 @@
-0	1	luke
-1	2	is
-2	3	a
-3	4	character
-4	5	of
-5	6	star
-6	7	wars
-7
