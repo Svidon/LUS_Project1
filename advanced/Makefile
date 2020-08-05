@@ -25,7 +25,6 @@ clean:	 ## Clean all temporary and generated files in the directory
 	@rm -f *lex.txt
 	@rm -f wordtag_sent.txt
 	@rm -f a.txt
-	@rm -f *.png
 	@rm -f merge.txt
 	@rm -f result.txt
 	@rm -f evaluation.txt
