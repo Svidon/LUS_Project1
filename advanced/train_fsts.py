@@ -10,50 +10,47 @@ word_lex = open('word.txt', 'w')
 
 # Control variables (to allow cutoff and lemmas usage)
 LEMMAS = False
-POS = False
+POS = True
 CUTOFF = False
 CUTOFF_VAL = 3
 
 
-############################
-# Reading of othe features
-############################
-# Dictionaries with lemma and POS mapping
-lemmas = {}
-pos = {}
 
-# Fill the lemma dictionary, mapping each word into its lemma
-for line in treain_features:
-	a = list(line.split())
-	
-	if len(a) > 0:
-		pos[a[0]] = a[1]
-		lemmas[a[0]] = a[2]
-
-
-########################
+###############################
 # Reading of train file
-########################
+# Together with features file
+###############################
 
 # Sentences of corpus
 sents = []
 tmp = []
 
+# List of original tags (this will include)
+original_tags = []
+
 # Identify all sentences with tuples of word-wordtag
-for line in train:
-	a = list(line.split())
+for t_line, f_line in zip(train, train_features):
+	a = list(t_line.split()) # Words Tags
+	f = list(f_line.split()) # Words POS-Tags Lemma
 
 	if len(a) > 0:
-		a[1] = '+'.join(a)
+		# Check if we have to use POS tags as additional features
+		if POS:
+			a[1] = '+'.join([a[1], f[1]])
+		original_tags.append(a[1])
 		
 		# Check if words have to be mapped onto their lemmas
 		if LEMMAS:
-			a[0] = lemmas[a[0]]
-		
+			a[0] = f[2]
+			
+		a[1] = '+'.join(a)
 		tmp.append(tuple(a))
 	else:
 		sents.append(tmp)
 		tmp = []
+
+# Original tags as set
+original_tags = set(original_tags)
 
 
 #######################
@@ -143,7 +140,7 @@ for key in wordtag_freq:
 	tags_lex.write(tagtmp)
 	ids += 1
 
-# Add unk
+# Add unks #TODO check if this is how it is handled
 unk_add = '<unk>' + ' ' + str(ids) + '\n'
 tags_lex.write(unk_add)
 
@@ -157,9 +154,10 @@ for key in word_wordtag_prob:
 	string = '0\t' + '0\t' + key[0] + '\t' + key[1] + '\t' + str(word_wordtag_prob[key]) + '\n'
 	automa.write(string)
 
-# Add unk information and final state
+# Add unk information and final state #TODO check how this is handled -> '+'.join(['<unk>', key])
+unk_prob = str(-log(1/float(len(wordtag_freq))))
 for key in wordtag_freq:
-	string = '0\t' + '0\t' + '<unk>' + '\t' + key + '\t' + str(-log(1/float(n_tags))) + '\n'
+	string = '0\t' + '0\t' + '<unk>' + '\t' + key + '\t' + unk_prob + '\n'
 	automa.write(string)
 automa.write('0')
 
