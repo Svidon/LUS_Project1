@@ -148,6 +148,7 @@ automa.write('0')
 ###############################################
 
 # Generate list of all sentences with just the tags
+# All the correct tags are used, even for cutoff words, it provides more training information
 tag_sentencies = []
 
 for p in sents:
@@ -158,7 +159,7 @@ for p in sents:
 
 	tag_sentencies.append(tmp)
 
-# Write out tag sentencies. All the correct tags are used, even for cutoff words, it provides more training information
+# Write out tag sentencies
 for el in tag_sentencies:
 	string = ''
 	for tag in el:

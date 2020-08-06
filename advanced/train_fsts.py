@@ -2,6 +2,7 @@ from math import log
 
 # Open needed files
 train = open('../dataset/NL2SparQL4NLU.train.conll.txt', 'r')
+train_features = open('../dataset/NL2SparQL4NLU.train.features.conll.txt', 'r')
 tags_lex = open('wordtags.lex.txt', 'w')
 automa = open('a.txt', 'w')
 tag_sent = open('wordtag_sent.txt', 'w')
@@ -9,8 +10,25 @@ word_lex = open('word.txt', 'w')
 
 # Control variables (to allow cutoff and lemmas usage)
 LEMMAS = False
+POS = False
 CUTOFF = False
 CUTOFF_VAL = 3
+
+
+############################
+# Reading of othe features
+############################
+# Dictionaries with lemma and POS mapping
+lemmas = {}
+pos = {}
+
+# Fill the lemma dictionary, mapping each word into its lemma
+for line in treain_features:
+	a = list(line.split())
+	
+	if len(a) > 0:
+		pos[a[0]] = a[1]
+		lemmas[a[0]] = a[2]
 
 
 ########################
@@ -21,31 +39,57 @@ CUTOFF_VAL = 3
 sents = []
 tmp = []
 
-# Identify all sentences with tuples of word-tag
+# Identify all sentences with tuples of word-wordtag
 for line in train:
 	a = list(line.split())
 
 	if len(a) > 0:
 		a[1] = '+'.join(a)
+		
+		# Check if words have to be mapped onto their lemmas
+		if LEMMAS:
+			a[0] = lemmas[a[0]]
+		
 		tmp.append(tuple(a))
 	else:
 		sents.append(tmp)
 		tmp = []
 
 
+#######################
+# Lexicon with cutoff
+#######################
+# Dictionary of word counts
+word_freq = {}
+
+for p in sents:
+	for i, t in enumerate(p):
+		word_freq[t[0]] = word_freq.get(t[0], 0) + 1
+
+# By default lex can be considered the set of keys of word freq. For praticity we set it to word_freq
+lex = list(word_freq.keys())
+# Apply cutoff if required
+if CUTOFF:
+	lex = []
+	lex.extend(sorted([word for word, freq in word_freq.items() if freq >= CUTOFF_VAL]))
+
+# Generate the file on which to compute the lexicon with ngramsymbols
+for val in lex:
+	string = val + '\n'
+	word_lex.write(string)
+	
+
 #####################################
 # Filling of dictionaries
 # both frequencies and probabilities
 #####################################
-
-# Dictionary of words frequencies and tag frequencies
-word_freq = {}
+# Dictionary of wordtag frequencies
 wordtag_freq = {}
 
-# Dictionary of word-tag counts
+# Dictionary of word-wordtag counts
 word_wordtag_count = {}
 
-# Dictionary with probability of word given the tag
+# Dictionary with probability of word given the wordtag
 word_wordtag_prob = {}
 
 
@@ -53,11 +97,18 @@ word_wordtag_prob = {}
 for p in sents:
 	for i, t in enumerate(p):
 
-		# Count word frequencies, tag frequencies and word-tag frequencies
-		key = (t[0], t[1])
-		word_wordtag_count[key] = word_wordtag_count.get(key, 0) + 1
-		word_freq[t[0]] = word_freq.get(t[0], 0) + 1
-		wordtag_freq[t[1]] = wordtag_freq.get(t[1], 0) + 1
+		# Word count already computed
+		# This control is just to avoid doing the nested control every time if there is no cutoff
+		if CUTOFF:
+			# Lex contains the lexicon with cutoff
+			if t[0] in lex:
+				key = (t[0], t[1])
+				word_wordtag_count[key] = word_wordtag_count.get(key, 0) + 1
+				wordtag_freq[t[1]] = wordtag_freq.get(t[1], 0) + 1
+		else:
+			key = (t[0], t[1])
+			word_wordtag_count[key] = word_wordtag_count.get(key, 0) + 1
+			wordtag_freq[t[1]] = wordtag_freq.get(t[1], 0) + 1
 
 # Number of tags
 n_tags = len(wordtag_freq)
@@ -66,10 +117,16 @@ n_tags = len(wordtag_freq)
 for val in sents:
 	for i, t in enumerate(val):
 
-		# Word given tag
+		# Word given wordtag
 		key = (t[0], t[1])
-		if key not in word_wordtag_prob:
-			word_wordtag_prob[key] = -log(float(word_wordtag_count[key])/float(wordtag_freq.get(t[1])))
+		# Same control as before, to avoid controlling without cutoff
+		if CUTOFF:
+			if t[0] in lex:
+				if key not in word_wordtag_prob:
+					word_wordtag_prob[key] = -log(float(word_wordtag_count[key])/float(wordtag_freq.get(t[1])))
+		else:
+			if key not in word_wordtag_prob:
+				word_wordtag_prob[key] = -log(float(word_wordtag_count[key])/float(wordtag_freq.get(t[1])))
 
 
 #########################################
@@ -112,6 +169,7 @@ automa.write('0')
 ###############################################
 
 # Generate list of all sentences with just the tags
+# All the correct tags are used, even for cutoff words, it provides more training information
 tag_sentencies = []
 
 for p in sents:
