@@ -72,16 +72,6 @@ for val in sents:
 			word_wordtag_prob[key] = -log(float(word_wordtag_count[key])/float(wordtag_freq.get(t[1])))
 
 
-#########################
-# Save new word lexicon
-#########################
-
-for w in word_freq:
-	tmp = str(w) + '\n'
-	word_lex.write(tmp)
-word_lex.close()
-
-
 #########################################
 # Generate TAGs lexicon
 #########################################
