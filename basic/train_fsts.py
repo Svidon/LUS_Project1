@@ -5,6 +5,11 @@ train = open('../dataset/NL2SparQL4NLU.train.conll.txt', 'r')
 tags_lex = open('tags.lex.txt', 'w')
 automa = open('a.txt', 'w')
 tag_sent = open('tag_sent.txt', 'w')
+word_lex = open('word.txt', 'w')
+
+# Variables managing the cutoff
+CUTOFF = False
+CUTOFF_VAL = 2 # Minimum value to be accepted
 
 
 ########################
@@ -26,14 +31,35 @@ for line in train:
 		tmp = []
 
 
+#######################
+# Lexicon with cutoff
+#######################
+# Dictionary of word counts
+word_freq = {}
+
+for p in sents:
+	for i, t in enumerate(p):
+		word_freq[t[0]] = word_freq.get(t[0], 0) + 1
+
+# By default lex can be considered the set of keys of word freq. For praticity we set it to word_freq
+lex = list(word_freq.keys())
+# Apply cutoff if required
+if CUTOFF:
+	lex = []
+	lex.extend(sorted([word for word, freq in word_freq.items() if freq >= CUTOFF_VAL]))
+
+# Generate the file on which to compute the lexicon with ngramsymbols
+for val in lex:
+	string = val + '\n'
+	word_lex.write(string)
+
 
 #####################################
 # Filling of dictionaries
 # both frequencies and probabilities
 #####################################
 
-# Dictionary of words frequencies and tag frequencies
-word_freq = {}
+# Dictionary of tag frequencies
 tag_freq = {}
 
 # Dictionary of word-tag counts
@@ -47,12 +73,18 @@ word_tag_prob = {}
 for p in sents:
 	for i, t in enumerate(p):
 
-		# Count word frequencies, tag frequencies and word-tag frequencies
-		key = (t[0], t[1])
-		word_tag_count[key] = word_tag_count.get(key, 0) + 1
-		word_freq[t[0]] = word_freq.get(t[0], 0) + 1
-		tag_freq[t[1]] = tag_freq.get(t[1], 0) + 1
-
+		# Word count already computed
+		# This control is just to avoid doing the nested control every time if there is no cutoff
+		if CUTOFF:
+			# Lex contains the lexicon with cutoff
+			if t[0] in lex:
+				key = (t[0], t[1])
+				word_tag_count[key] = word_tag_count.get(key, 0) + 1
+				tag_freq[t[1]] = tag_freq.get(t[1], 0) + 1
+		else:
+			key = (t[0], t[1])
+			word_tag_count[key] = word_tag_count.get(key, 0) + 1
+			tag_freq[t[1]] = tag_freq.get(t[1], 0) + 1
 
 # Number of tags
 n_tags = len(tag_freq)
@@ -65,9 +97,14 @@ for val in sents:
 
 		# Word given tag
 		key = (t[0], t[1])
-		if key not in word_tag_prob:
-			word_tag_prob[key] = -log(float(word_tag_count[key])/float(tag_freq.get(t[1])))
-
+		# Same control as before, to avoid controlling without cutoff
+		if CUTOFF:
+			if t[0] in lex:
+				if key not in word_tag_prob:
+					word_tag_prob[key] = -log(float(word_tag_count[key])/float(tag_freq.get(t[1])))
+		else:
+			if key not in word_tag_prob:
+				word_tag_prob[key] = -log(float(word_tag_count[key])/float(tag_freq.get(t[1])))
 
 
 
@@ -121,7 +158,7 @@ for p in sents:
 
 	tag_sentencies.append(tmp)
 
-# Write out tag sentencies
+# Write out tag sentencies. All the correct tags are used, even for cutoff words, it provides more training information
 for el in tag_sentencies:
 	string = ''
 	for tag in el:
