@@ -140,7 +140,8 @@ for key in wordtag_freq:
 	tags_lex.write(tagtmp)
 	ids += 1
 
-# Add unks #TODO check if this is how it is handled
+# Add unks
+#TODO check if this is how it is handled
 unk_add = '<unk>' + ' ' + str(ids) + '\n'
 tags_lex.write(unk_add)
 
@@ -150,14 +151,15 @@ tags_lex.write(unk_add)
 ########################################
 
 # Generate FSTs
-for key in word_wordtag_prob:
-	string = '0\t' + '0\t' + key[0] + '\t' + key[1] + '\t' + str(word_wordtag_prob[key]) + '\n'
+for key in word_wordtag_count:
+	string = '0\t' + '0\t' + key[0] + '\t' + key[1] + '\n'
 	automa.write(string)
 
-# Add unk information and final state #TODO check how this is handled -> '+'.join(['<unk>', key])
+# Add unk information and final state
+#TODO check how this is handled -> '+'.join(['<unk>', key])
 unk_prob = str(-log(1/float(len(wordtag_freq))))
 for key in wordtag_freq:
-	string = '0\t' + '0\t' + '<unk>' + '\t' + key + '\t' + unk_prob + '\n'
+	string = '0\t' + '0\t' + '<unk>' + '\t' + key + '\n'
 	automa.write(string)
 automa.write('0')
 
