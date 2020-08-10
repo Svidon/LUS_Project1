@@ -9,10 +9,10 @@ tag_sent = open('wordtag_sent.txt', 'w')
 word_lex = open('word.txt', 'w')
 
 # Control variables (to allow cutoff and lemmas usage)
-LEMMAS = False
+LEMMAS = True
 POS = True
-CUTOFF = False
-CUTOFF_VAL = 3
+CUTOFF = True
+CUTOFF_VAL = 2 # Min number of occurences to include
 
 
 
@@ -25,7 +25,7 @@ CUTOFF_VAL = 3
 sents = []
 tmp = []
 
-# List of original tags (this will include)
+# List of original tags. This will be used for '<unk>' words. It will include POS tags
 original_tags = []
 
 # Identify all sentences with tuples of word-wordtag
@@ -107,8 +107,6 @@ for p in sents:
 			word_wordtag_count[key] = word_wordtag_count.get(key, 0) + 1
 			wordtag_freq[t[1]] = wordtag_freq.get(t[1], 0) + 1
 
-# Number of tags
-n_tags = len(wordtag_freq)
 
 # Fill probabilities dictionaries
 for val in sents:
@@ -139,9 +137,14 @@ for key in wordtag_freq:
 	tagtmp = key + ' ' + str(ids) + '\n'
 	tags_lex.write(tagtmp)
 	ids += 1
+	
+# Add tags for unk words
+for el in original_tags:
+	tagtmp = '<unk>+' + el + ' ' + str(ids) + '\n'
+	tags_lex.write(tagtmp)
+	ids += 1
 
-# Add unks
-#TODO check if this is how it is handled
+# Add final unk
 unk_add = '<unk>' + ' ' + str(ids) + '\n'
 tags_lex.write(unk_add)
 
@@ -151,15 +154,15 @@ tags_lex.write(unk_add)
 ########################################
 
 # Generate FSTs
-for key in word_wordtag_count:
-	string = '0\t' + '0\t' + key[0] + '\t' + key[1] + '\n'
+for key in word_wordtag_prob:
+	string = '0\t' + '0\t' + key[0] + '\t' + key[1] + '\t' + str(word_wordtag_prob[key]) +'\n'
 	automa.write(string)
 
 # Add unk information and final state
 #TODO check how this is handled -> '+'.join(['<unk>', key])
 unk_prob = str(-log(1/float(len(wordtag_freq))))
 for key in wordtag_freq:
-	string = '0\t' + '0\t' + '<unk>' + '\t' + key + '\n'
+	string = '0\t' + '0\t' + '<unk>' + '\t' + key + '\t' + str(unk_prob) + '\n'
 	automa.write(string)
 automa.write('0')
 
