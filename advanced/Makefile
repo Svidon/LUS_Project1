@@ -7,12 +7,10 @@ help:	 ## Show this help message
 train:	 ## Train the model and build automatons. Parameters have to be specified.
 	@## Use order parameter to specify the ngram order (use an integer number).
 	@## Use method to specify the smoothing method to build the language model
-	@## 	(possible values are: absolute, katz, kneser_ney, presmoothed, unsmoothed, witten_bell)
+	@## 	- Possible values are: absolute, katz, kneser_ney, presmoothed, unsmoothed, witten_bell
+	@##	unsmoothed only works with order=1
 	@## To use lemmas, pos-tags or cutoff you have to set to 'True' the values in 'train_fsts.py'
 	@./automaton.sh $(order) $(method)
-
-tag:	 ## Tag your own sentence (assumed in prova.txt and in same format of extras/sample.txt) and generate resulting fst image
-	@./sentence_tag.sh
 	
 test:	 ## Test the model on the test set. Will generate a file with all tagged sentences and return the model evaluation 
 	@./testing.sh
@@ -31,5 +29,6 @@ clean:	 ## Clean all temporary and generated files in the directory
 	@rm -f result.txt
 	@rm -f evaluation.txt
 	@rm -f word.txt
+	@rm -f test_generalized.txt
 	@rm -f -r test_fsa
 	@echo Cleaned directory

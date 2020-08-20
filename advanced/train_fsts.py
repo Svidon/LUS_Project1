@@ -3,6 +3,8 @@ from math import log
 # Open needed files
 train = open('../dataset/NL2SparQL4NLU.train.conll.txt', 'r')
 train_features = open('../dataset/NL2SparQL4NLU.train.features.conll.txt', 'r')
+test_utt = open('../dataset/NL2SparQL4NLU.test.features.conll.txt', 'r')
+test_gen = open('test_generalized.txt', 'w')
 tags_lex = open('wordtags.lex.txt', 'w')
 automa = open('a.txt', 'w')
 tag_sent = open('wordtag_sent.txt', 'w')
@@ -10,10 +12,12 @@ word_lex = open('word.txt', 'w')
 
 # Control variables (to allow cutoff and lemmas usage)
 LEMMAS = True
-POS = True
-CUTOFF = True
-CUTOFF_VAL = 2 # Min number of occurences to include
+POS = False
+CUTOFF = False
+CUTOFF_VAL = 4 # Min number of occurences to include
 
+# This is the string used for numbers generalization
+num = '<number>'
 
 
 ###############################
@@ -42,6 +46,10 @@ for t_line, f_line in zip(train, train_features):
 		# Check if words have to be mapped onto their lemmas
 		if LEMMAS:
 			a[0] = f[2]
+		
+		# Generalize all numbers with a unique token	
+		if a[0].isdigit():	
+			a[0] = num
 			
 		a[1] = '+'.join(a)
 		tmp.append(tuple(a))
@@ -76,19 +84,15 @@ for val in lex:
 	word_lex.write(string)
 	
 
-#####################################
+###############################################
 # Filling of dictionaries
-# both frequencies and probabilities
-#####################################
+# Kept because of code ease wrt previous model
+###############################################
 # Dictionary of wordtag frequencies
 wordtag_freq = {}
 
 # Dictionary of word-wordtag counts
 word_wordtag_count = {}
-
-# Dictionary with probability of word given the wordtag
-word_wordtag_prob = {}
-
 
 # Fill counting dictionaries
 for p in sents:
@@ -106,22 +110,6 @@ for p in sents:
 			key = (t[0], t[1])
 			word_wordtag_count[key] = word_wordtag_count.get(key, 0) + 1
 			wordtag_freq[t[1]] = wordtag_freq.get(t[1], 0) + 1
-
-
-# Fill probabilities dictionaries
-for val in sents:
-	for i, t in enumerate(val):
-
-		# Word given wordtag
-		key = (t[0], t[1])
-		# Same control as before, to avoid controlling without cutoff
-		if CUTOFF:
-			if t[0] in lex:
-				if key not in word_wordtag_prob:
-					word_wordtag_prob[key] = -log(float(word_wordtag_count[key])/float(wordtag_freq.get(t[1])))
-		else:
-			if key not in word_wordtag_prob:
-				word_wordtag_prob[key] = -log(float(word_wordtag_count[key])/float(wordtag_freq.get(t[1])))
 
 
 #########################################
@@ -149,20 +137,20 @@ unk_add = '<unk>' + ' ' + str(ids) + '\n'
 tags_lex.write(unk_add)
 
 
-########################################
+###################################################################################
 # Generation of train FST for the tool
-########################################
+# Unweighted since all the probabilities would be 1 for words and equal among unks
+###################################################################################
 
 # Generate FSTs
-for key in word_wordtag_prob:
-	string = '0\t' + '0\t' + key[0] + '\t' + key[1] + '\t' + str(word_wordtag_prob[key]) +'\n'
+for key in word_wordtag_count:
+	string = '0\t' + '0\t' + key[0] + '\t' + key[1] + '\n'
 	automa.write(string)
 
 # Add unk information and final state
-#TODO check how this is handled -> '+'.join(['<unk>', key])
 unk_prob = str(-log(1/float(len(wordtag_freq))))
 for key in wordtag_freq:
-	string = '0\t' + '0\t' + '<unk>' + '\t' + key + '\t' + str(unk_prob) + '\n'
+	string = '0\t' + '0\t' + '<unk>' + '\t' + key + '\n'
 	automa.write(string)
 automa.write('0')
 
@@ -192,3 +180,34 @@ for el in tag_sentencies:
 	string += '\n'
 	tag_sent.write(string)
 tag_sent.close()
+
+
+###################################
+# Generalization of the test input
+###################################
+# Read test set
+test_sents = []
+tmp = []
+
+for line in test_utt:
+	a = list(line.split()) # Word pos lemma
+	
+	if len(a) > 0:
+		# If we are using lemmas use those, otherwise normal word
+		if LEMMAS:
+			word = a[2]
+		else:
+			word = a[0]
+		
+		if a[0].isdigit():
+			tmp.append(num)
+		else:
+			tmp.append(word)
+	else:
+		test_sents.append(tmp)
+		tmp = []
+			
+# Output in a new file with the same structure of utterances file
+for sent in test_sents:
+	string = ' '.join(sent) + '\n'
+	test_gen.write(string)	

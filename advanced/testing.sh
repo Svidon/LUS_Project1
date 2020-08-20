@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Generate FAR with all test sentences
-farcompilestrings --symbols=lex.txt --unknown_symbol="<unk>" ../dataset/NL2SparQL4NLU.test.utterances.txt > test.far
+farcompilestrings --symbols=lex.txt --unknown_symbol="<unk>" test_generalized.txt > test.far
 
 # Extract all the sentences in a separate folder
 mkdir -p test_fsa

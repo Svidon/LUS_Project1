@@ -7,7 +7,8 @@ help:	 ## Show this help message
 train:	 ## Train the model and build automatons. Parameters have to be specified.
 	@## Use order parameter to specify the ngram order (use an integer number).
 	@## Use method to specify the smoothing method to build the language model
-	@## 	(possible values are: absolute, katz, kneser_ney, presmoothed, unsmoothed, witten_bell)
+	@## 	- Possible values are: absolute, katz, kneser_ney, presmoothed, unsmoothed, witten_bell
+	@##	unsmoothed only works with order=1
 	@## To use the cutoff set 'CUTOFF' to 'True' and 'CUTOFF_VAL' to the minimum value to accept a word in 'train_fsts.py'
 	@./automaton.sh $(order) $(method)
 	
